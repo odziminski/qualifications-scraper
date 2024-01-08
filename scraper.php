@@ -8,7 +8,10 @@ use Facebook\WebDriver\WebDriverBy;
 use \Symfony\Component\Dotenv\Dotenv;
 
 $dotenv = new Dotenv();
-$dotenv->load(__DIR__.'/.env');
+$dotenv->load(__DIR__ . '/.env');
+
+require_once ('database.php');
+
 $chromeDriverPath = '/resources/chromedriver.exe';
 $chromeBinaryPath = $_ENV['CHROME_BINARY_PATH'];
 $host = $_ENV['WEBDRIVER_HOST'];
@@ -25,7 +28,7 @@ $hrefsArray = [];
 $previousNumberOfLinks = 0;
 $currentNumberOfLinks = 0;
 
-$scrollStep = $bodyHeight / 20;
+$scrollStep = $bodyHeight / 15;
 
 for ($i = 0; $i <= 20; $i++) {
     $previousNumberOfLinks = count($driver->findElements(WebDriverBy::tagName('a')));
@@ -54,7 +57,7 @@ $skillsCountArray = [];
 
 foreach ($uniqueHrefsArray as $href) {
     $driver->get('https://justjoin.it' . $href);
-    sleep(2);
+    sleep(1);
     $i = 1;
     while (true) {
         $xpathSkill = "/html/body/div[1]/div[2]/div[2]/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/h6";
@@ -72,16 +75,21 @@ foreach ($uniqueHrefsArray as $href) {
         foreach ($elementsLevel as $elementLevel) {
             $level = $elementLevel->getText();
         }
-        $qualificationsArray[$skill] = $level;
 
-        if (array_key_exists($skill, $skillsCountArray)) {
-            $skillsCountArray[$skill]++;
-        } else {
-            $skillsCountArray[$skill] = 1;
+        if (isset($skill) && isset($level)) {
+            $qualificationsArray[$skill] = $level;
+            if (array_key_exists($skill, $skillsCountArray)) {
+                $skillsCountArray[$skill]++;
+            } else {
+                $skillsCountArray[$skill] = 1;
+            }
         }
+
         $i++;
     }
 }
-var_dump($qualificationsArray);
+
+//var_dump($qualificationsArray);
 arsort($skillsCountArray);
 var_dump($skillsCountArray);
+var_dump($i);
