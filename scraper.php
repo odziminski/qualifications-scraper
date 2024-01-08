@@ -48,8 +48,10 @@ for ($i = 0; $i <= 20; $i++) {
 }
 
 $uniqueHrefsArray = array_unique($hrefsArray);
-var_dump(count($uniqueHrefsArray));
 $qualificationsArray = [];
+$skillsCountArray = [];
+//$uniqueHrefsArray = ['/offers/livespace-sp-z-o-o-back-end-engineer-php-poznan','/offers/crido-mlodszy-a-programista-ka-php'];
+
 foreach ($uniqueHrefsArray as $href) {
     $driver->get('https://justjoin.it' . $href);
     sleep(2);
@@ -71,7 +73,15 @@ foreach ($uniqueHrefsArray as $href) {
             $level = $elementLevel->getText();
         }
         $qualificationsArray[$skill] = $level;
+
+        if (array_key_exists($skill, $skillsCountArray)) {
+            $skillsCountArray[$skill]++;
+        } else {
+            $skillsCountArray[$skill] = 1;
+        }
         $i++;
     }
 }
 var_dump($qualificationsArray);
+arsort($skillsCountArray);
+var_dump($skillsCountArray);
