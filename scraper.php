@@ -20,7 +20,6 @@ $capabilities = DesiredCapabilities::chrome();
 $capabilities->setCapability('chrome.binary', $chromeBinaryPath);
 
 $driver = RemoteWebDriver::create($host, $capabilities);
-
 $driver->get('https://justjoin.it/all-locations/php');
 
 $bodyHeight = $driver->executeScript("return document.body.scrollHeight;");
@@ -88,6 +87,8 @@ foreach ($uniqueHrefsArray as $href) {
         $i++;
     }
 }
+$db = new DB();
+$db->insert(json_encode($skillsCountArray), count($uniqueHrefsArray));
 
 //var_dump($qualificationsArray);
 arsort($skillsCountArray);
