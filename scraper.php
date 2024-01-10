@@ -7,90 +7,97 @@ use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverBy;
 use \Symfony\Component\Dotenv\Dotenv;
 
-$dotenv = new Dotenv();
-$dotenv->load(__DIR__ . '/.env');
+class WebScraper {
+    private $driver;
+    private $db;
 
-require_once ('database.php');
+    public function __construct() {
+        $dotenv = new Dotenv();
+        $dotenv->load(__DIR__ . '/.env');
 
-$chromeDriverPath = '/resources/chromedriver.exe';
-$chromeBinaryPath = $_ENV['CHROME_BINARY_PATH'];
-$host = $_ENV['WEBDRIVER_HOST'];
+        require_once ('database.php');
 
-$capabilities = DesiredCapabilities::chrome();
-$capabilities->setCapability('chrome.binary', $chromeBinaryPath);
+        $chromeDriverPath = '/resources/chromedriver.exe';
+        $chromeBinaryPath = $_ENV['CHROME_BINARY_PATH'];
+        $host = $_ENV['WEBDRIVER_HOST'];
 
-$driver = RemoteWebDriver::create($host, $capabilities);
-$driver->get('https://justjoin.it/all-locations/php');
+        $capabilities = DesiredCapabilities::chrome();
+        $capabilities->setCapability('chrome.binary', $chromeBinaryPath);
 
-$bodyHeight = $driver->executeScript("return document.body.scrollHeight;");
-$hrefsArray = [];
-$previousNumberOfLinks = 0;
-$currentNumberOfLinks = 0;
-
-$scrollStep = $bodyHeight / 15;
-
-for ($i = 0; $i <= 20; $i++) {
-    $previousNumberOfLinks = count($driver->findElements(WebDriverBy::tagName('a')));
-
-    $driver->executeScript("window.scrollTo(0, $scrollStep * $i);");
-
-    sleep(1);
-
-    $currentNumberOfLinks = count($driver->findElements(WebDriverBy::tagName('a')));
-
-    $links = $driver->findElements(WebDriverBy::tagName('a'));
-
-    foreach ($links as $link) {
-        $href = $link->getAttribute('href');
-
-        if (str_starts_with(strval($href), '/offers/')) {
-            $hrefsArray[] = $href;
-        }
+        $this->driver = RemoteWebDriver::create($host, $capabilities);
+        $this->db = new DB();
     }
-}
 
-$uniqueHrefsArray = array_unique($hrefsArray);
-$qualificationsArray = [];
-$skillsCountArray = [];
-//$uniqueHrefsArray = ['/offers/livespace-sp-z-o-o-back-end-engineer-php-poznan','/offers/crido-mlodszy-a-programista-ka-php'];
+    public function scrapeSite() {
+        $this->driver->get('https://justjoin.it/all-locations/php');
 
-foreach ($uniqueHrefsArray as $href) {
-    $driver->get('https://justjoin.it' . $href);
-    sleep(1);
-    $i = 1;
-    while (true) {
-        $xpathSkill = "/html/body/div[1]/div[2]/div[2]/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/h6";
-        $xpathLevel = "/html/body/div[1]/div[2]/div[2]/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/span";
+        $bodyHeight = $this->driver->executeScript("return document.body.scrollHeight;");
+        $hrefsArray = [];
+        $previousNumberOfLinks = 0;
+        $currentNumberOfLinks = 0;
 
-        $elementsSkill = $driver->findElements(WebDriverBy::xpath($xpathSkill));
-        $elementsLevel = $driver->findElements(WebDriverBy::xpath($xpathLevel));
+        $scrollStep = $bodyHeight / 10;
 
-        if (count($elementsSkill) == 0) {
-            break;
-        }
-        foreach ($elementsSkill as $elementSkill) {
-            $skill = $elementSkill->getText();
-        }
-        foreach ($elementsLevel as $elementLevel) {
-            $level = $elementLevel->getText();
-        }
+        for ($i = 0; $i <= 20; $i++) {
+            $previousNumberOfLinks = count($this->driver->findElements(WebDriverBy::tagName('a')));
 
-        if (isset($skill) && isset($level)) {
-            $qualificationsArray[$skill] = $level;
-            if (array_key_exists($skill, $skillsCountArray)) {
-                $skillsCountArray[$skill]++;
-            } else {
-                $skillsCountArray[$skill] = 1;
+            $this->driver->executeScript("window.scrollTo(0, $scrollStep * $i);");
+
+            sleep(1);
+
+            $currentNumberOfLinks = count($this->driver->findElements(WebDriverBy::tagName('a')));
+
+            $links = $this->driver->findElements(WebDriverBy::tagName('a'));
+
+            foreach ($links as $link) {
+                $href = $link->getAttribute('href');
+
+                if (str_starts_with(strval($href), '/offers/')) {
+                    $hrefsArray[] = $href;
+                }
             }
         }
 
-        $i++;
+        $uniqueHrefsArray = array_unique($hrefsArray);
+        $skillsCountArray = [];
+
+        foreach ($uniqueHrefsArray as $href) {
+            $this->driver->get('https://justjoin.it' . $href);
+            sleep(1);
+            $i = 1;
+            while (true) {
+                $xpathSkill = "/html/body/div[1]/div[2]/div[2]/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/h6";
+                $xpathLevel = "/html/body/div[1]/div[2]/div[2]/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/span";
+
+                $elementsSkill = $this->driver->findElements(WebDriverBy::xpath($xpathSkill));
+                $elementsLevel = $this->driver->findElements(WebDriverBy::xpath($xpathLevel));
+
+                if (count($elementsSkill) == 0) {
+                    break;
+                }
+                foreach ($elementsSkill as $elementSkill) {
+                    $skill = $elementSkill->getText();
+                }
+                foreach ($elementsLevel as $elementLevel) {
+                    $level = $elementLevel->getText();
+                }
+
+                if (isset($skill) && isset($level)) {
+                    if (array_key_exists($skill, $skillsCountArray)) {
+                        $skillsCountArray[$skill]++;
+                    } else {
+                        $skillsCountArray[$skill] = 1;
+                    }
+                }
+
+                $i++;
+            }
+        }
+        arsort($skillsCountArray);
+        $this->db->insert(json_encode($skillsCountArray), count($uniqueHrefsArray));
+
     }
 }
-$db = new DB();
-$db->insert(json_encode($skillsCountArray), count($uniqueHrefsArray));
 
-//var_dump($qualificationsArray);
-arsort($skillsCountArray);
-var_dump($skillsCountArray);
-var_dump($i);
+$scraper = new WebScraper();
+$scraper->scrapeSite();

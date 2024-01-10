@@ -25,6 +25,8 @@ class DB
         $pdo = self::connect();
         $sql = "INSERT INTO qualifications (skills, offers_count) VALUES (?,?)";
         $query = $pdo->prepare($sql);
-        return $query->execute([$skills, $offers_count]);
+        if ($query->execute([$skills, $offers_count])){
+            echo "New record created successfully";
+        }
     }
 }
