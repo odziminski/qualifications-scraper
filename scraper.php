@@ -8,8 +8,8 @@ use Facebook\WebDriver\WebDriverBy;
 use \Symfony\Component\Dotenv\Dotenv;
 
 class WebScraper {
-    private $driver;
-    private $db;
+    private RemoteWebDriver $driver;
+    private DB $db;
 
     public function __construct() {
         $dotenv = new Dotenv();
@@ -28,24 +28,20 @@ class WebScraper {
         $this->db = new DB();
     }
 
-    public function scrapeSite() {
+    public function scrapeOffers(): void
+    {
         $this->driver->get('https://justjoin.it/all-locations/php');
 
         $bodyHeight = $this->driver->executeScript("return document.body.scrollHeight;");
         $hrefsArray = [];
-        $previousNumberOfLinks = 0;
-        $currentNumberOfLinks = 0;
 
         $scrollStep = $bodyHeight / 10;
 
         for ($i = 0; $i <= 20; $i++) {
-            $previousNumberOfLinks = count($this->driver->findElements(WebDriverBy::tagName('a')));
-
             $this->driver->executeScript("window.scrollTo(0, $scrollStep * $i);");
 
             sleep(1);
 
-            $currentNumberOfLinks = count($this->driver->findElements(WebDriverBy::tagName('a')));
 
             $links = $this->driver->findElements(WebDriverBy::tagName('a'));
 
@@ -60,6 +56,7 @@ class WebScraper {
 
         $uniqueHrefsArray = array_unique($hrefsArray);
         $skillsCountArray = [];
+        $levelsArray = [];
 
         foreach ($uniqueHrefsArray as $href) {
             $this->driver->get('https://justjoin.it' . $href);
@@ -83,21 +80,49 @@ class WebScraper {
                 }
 
                 if (isset($skill) && isset($level)) {
-                    if (array_key_exists($skill, $skillsCountArray)) {
-                        $skillsCountArray[$skill]++;
-                    } else {
-                        $skillsCountArray[$skill] = 1;
+                    if (!array_key_exists($skill, $skillsCountArray)) {
+                        $skillsCountArray[$skill] = ['count' => 0, 'levels' => []];
                     }
+                    $skillsCountArray[$skill]['count']++;
+                    $skillsCountArray[$skill]['levels'][] = $level;
                 }
 
                 $i++;
             }
         }
-        arsort($skillsCountArray);
+
+        foreach ($skillsCountArray as $skill => $data) {
+            $averageLevel = $this->calculateAverageLevel($data['levels']);
+            $skillsCountArray[$skill]['average_level'] = $averageLevel;
+        }
+
         $this->db->insert(json_encode($skillsCountArray), count($uniqueHrefsArray));
 
+    }
+
+    function calculateAverageLevel($levels): float|int
+    {
+        $levelValues = [
+            "Nice to have" => 1,
+            "Junior" => 2,
+            "Regular" => 3,
+            "Advanced" => 4,
+            "Master" => 5
+        ];
+
+        $total = 0;
+        $count = 0;
+
+        foreach ($levels as $level) {
+            if (isset($levelValues[$level])) {
+                $total += $levelValues[$level];
+                $count++;
+            }
+        }
+
+        return $count > 0 ? $total / $count : 0;
     }
 }
 
 $scraper = new WebScraper();
-$scraper->scrapeSite();
+$scraper->scrapeOffers();
