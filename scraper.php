@@ -31,16 +31,17 @@ class WebScraper {
     public function scrapeOffers(): void
     {
         $this->driver->get('https://justjoin.it/all-locations/php');
+        $offersCount = $this->driver->findElement(WebDriverBy::xpath($_ENV['OFFERS_COUNT_XPATH']));
 
         $bodyHeight = $this->driver->executeScript("return document.body.scrollHeight;");
         $hrefsArray = [];
 
         $scrollStep = $bodyHeight / 10;
-
-        for ($i = 0; $i <= 20; $i++) {
+        $max = intval($offersCount->getText()) / 12;
+        for ($i = 0; $i <= $max; $i++) {
             $this->driver->executeScript("window.scrollTo(0, $scrollStep * $i);");
 
-            sleep(1);
+            usleep(8000);
 
 
             $links = $this->driver->findElements(WebDriverBy::tagName('a'));
@@ -100,8 +101,7 @@ class WebScraper {
 
     }
 
-    function calculateAverageLevel($levels): float|int
-    {
+    function calculateAverageLevel($levels) {
         $levelValues = [
             "Nice to have" => 1,
             "Junior" => 2,

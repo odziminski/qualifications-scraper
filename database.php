@@ -20,7 +20,7 @@ class DB
         return null;
     }
 
-    public static function insert($skills, $offers_count)
+    public static function insert($skills, $offers_count): void
     {
         $pdo = self::connect();
         $sql = "INSERT INTO qualifications (skills, offers_count) VALUES (?,?)";
