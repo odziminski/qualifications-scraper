@@ -5,14 +5,19 @@ require_once('vendor/autoload.php');
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverBy;
-use \Symfony\Component\Dotenv\Dotenv;
+use Symfony\Component\Dotenv\Dotenv;
 
 class WebScraper {
     private RemoteWebDriver $driver;
     private DB $db;
 
+    public array $possibleCategories =
+        ["js", "html", "php", "java", "python", "ruby", "net", "c", "testing", "devops", "go", "scala", "mobile",
+            "security", "other",'devops', 'ux', 'pm', 'game','analytics','security','data','support', 'erp',
+            'architecture', 'other'];
+
     public function __construct() {
-        self::checkArgument($_SERVER['argv']);
+        self::checkCategory($_SERVER['argv']);
         $dotenv = new Dotenv();
         $dotenv->load(__DIR__ . '/.env');
 
@@ -31,18 +36,19 @@ class WebScraper {
     public function scrapeOffers(): void
     {
         $this->driver->get("https://justjoin.it/all-locations/" . $_SERVER['argv'][1]);
-        $offersCount = $this->driver->findElement(WebDriverBy::xpath($_ENV['OFFERS_COUNT_XPATH']));
+        usleep(5000);
 
+        $offersCount = $this->driver->findElement(WebDriverBy::xpath($_ENV['OFFERS_COUNT_XPATH']));
         $bodyHeight = $this->driver->executeScript("return document.body.scrollHeight;");
         $hrefsArray = [];
 
         $scrollStep = $bodyHeight / 10;
-        $max = intval($offersCount->getText()) / 12;
+        $max = 50;
+
         for ($i = 0; $i <= $max; $i++) {
             $this->driver->executeScript("window.scrollTo(0, $scrollStep * $i);");
 
             usleep(8500);
-
 
             $links = $this->driver->findElements(WebDriverBy::tagName('a'));
 
@@ -122,11 +128,10 @@ class WebScraper {
 
         return $count > 0 ? round($total / $count,2) : 0;
     }
-    private static function checkArgument($args)
+    private function checkCategory($args): void
     {
-        $possibleArguments = ["php", "javascript", "python", "java", "ruby", "csharp", "swift", "typescript", "go", "rust"];
-        if (!in_array($args[1], $possibleArguments)){
-            exit ("Wrong argument, page not found.");
+        if (!in_array($args[1], $this->possibleCategories)){
+            exit ("Wrong argument, category not found.");
         }
     }
 }
