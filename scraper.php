@@ -12,12 +12,12 @@ class WebScraper {
     private DB $db;
 
     public function __construct() {
+        self::checkArgument($_SERVER['argv']);
         $dotenv = new Dotenv();
         $dotenv->load(__DIR__ . '/.env');
 
         require_once ('database.php');
 
-        $chromeDriverPath = '/resources/chromedriver.exe';
         $chromeBinaryPath = $_ENV['CHROME_BINARY_PATH'];
         $host = $_ENV['WEBDRIVER_HOST'];
 
@@ -30,7 +30,7 @@ class WebScraper {
 
     public function scrapeOffers(): void
     {
-        $this->driver->get('https://justjoin.it/all-locations/php');
+        $this->driver->get("https://justjoin.it/all-locations/" . $_SERVER['argv'][1]);
         $offersCount = $this->driver->findElement(WebDriverBy::xpath($_ENV['OFFERS_COUNT_XPATH']));
 
         $bodyHeight = $this->driver->executeScript("return document.body.scrollHeight;");
@@ -41,7 +41,7 @@ class WebScraper {
         for ($i = 0; $i <= $max; $i++) {
             $this->driver->executeScript("window.scrollTo(0, $scrollStep * $i);");
 
-            usleep(8000);
+            usleep(8500);
 
 
             $links = $this->driver->findElements(WebDriverBy::tagName('a'));
@@ -57,11 +57,10 @@ class WebScraper {
 
         $uniqueHrefsArray = array_unique($hrefsArray);
         $skillsCountArray = [];
-        $levelsArray = [];
 
         foreach ($uniqueHrefsArray as $href) {
             $this->driver->get('https://justjoin.it' . $href);
-            sleep(1);
+            usleep(8500);
             $i = 1;
             while (true) {
                 $xpathSkill = "/html/body/div[1]/div[2]/div[2]/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/h6";
@@ -101,7 +100,8 @@ class WebScraper {
 
     }
 
-    function calculateAverageLevel($levels) {
+    function calculateAverageLevel($levels): float|int
+    {
         $levelValues = [
             "Nice to have" => 1,
             "Junior" => 2,
@@ -120,9 +120,17 @@ class WebScraper {
             }
         }
 
-        return $count > 0 ? $total / $count : 0;
+        return $count > 0 ? round($total / $count,2) : 0;
+    }
+    private static function checkArgument($args)
+    {
+        $possibleArguments = ["php", "javascript", "python", "java", "ruby", "csharp", "swift", "typescript", "go", "rust"];
+        if (!in_array($args[1], $possibleArguments)){
+            exit ("Wrong argument, page not found.");
+        }
     }
 }
+
 
 $scraper = new WebScraper();
 $scraper->scrapeOffers();
