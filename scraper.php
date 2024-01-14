@@ -17,6 +17,7 @@ class WebScraper {
             'architecture', 'other'];
 
     public function __construct() {
+
         self::checkCategory($_SERVER['argv']);
         $dotenv = new Dotenv();
         $dotenv->load(__DIR__ . '/.env');
@@ -33,12 +34,11 @@ class WebScraper {
         $this->db = new DB();
     }
 
-    public function scrapeOffers(): void
+    public function scrapeOffers($category): void
     {
-        $this->driver->get("https://justjoin.it/all-locations/" . $_SERVER['argv'][1]);
+        $this->driver->get("https://justjoin.it/all-locations/" . $category);
         usleep(5000);
 
-        $offersCount = $this->driver->findElement(WebDriverBy::xpath($_ENV['OFFERS_COUNT_XPATH']));
         $bodyHeight = $this->driver->executeScript("return document.body.scrollHeight;");
         $hrefsArray = [];
 
@@ -66,7 +66,7 @@ class WebScraper {
 
         foreach ($uniqueHrefsArray as $href) {
             $this->driver->get('https://justjoin.it' . $href);
-            usleep(8500);
+            usleep(5500);
             $i = 1;
             while (true) {
                 $xpathSkill = "/html/body/div[1]/div[2]/div[2]/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/h6";
@@ -136,6 +136,8 @@ class WebScraper {
     }
 }
 
-
 $scraper = new WebScraper();
-$scraper->scrapeOffers();
+
+for ($i = 1; $i <= count($_SERVER['argv']) - 1; $i++) {
+    $scraper->scrapeOffers($_SERVER['argv'][$i]);
+}

@@ -11,13 +11,10 @@ class DB
         $user = $_ENV['DB_USER'];
 
 
-        if (!isset(self::$instance)) {
             $dbh = new PDO("mysql:host=$host;dbname=$db", $user);
             self::$instance = $dbh;
 
             return self::$instance;
-        }
-        return null;
     }
 
     public static function insert($skills, $offers_count): void
@@ -26,7 +23,7 @@ class DB
         $sql = "INSERT INTO qualifications (skills, offers_count) VALUES (?,?)";
         $query = $pdo->prepare($sql);
         if ($query->execute([$skills, $offers_count])){
-            echo "New record created successfully";
+            echo "New record created successfully \n";
         }
     }
 }
