@@ -17,12 +17,12 @@ class DB
             return self::$instance;
     }
 
-    public static function insert($skills, $offers_count): void
+    public static function insert($category, $skills, $offers_count): void
     {
         $pdo = self::connect();
-        $sql = "INSERT INTO qualifications (skills, offers_count) VALUES (?,?)";
+        $sql = "INSERT INTO qualifications (category,skills, offers_count) VALUES (?,?,?)";
         $query = $pdo->prepare($sql);
-        if ($query->execute([$skills, $offers_count])){
+        if ($query->execute([$category, $skills, $offers_count])){
             echo "New record created successfully \n";
         }
     }

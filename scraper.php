@@ -102,7 +102,7 @@ class WebScraper {
             $skillsCountArray[$skill]['average_level'] = $averageLevel;
         }
 
-        $this->db->insert(json_encode($skillsCountArray), count($uniqueHrefsArray));
+        $this->db->insert($category,json_encode($skillsCountArray), count($uniqueHrefsArray));
 
     }
 
