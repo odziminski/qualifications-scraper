@@ -7,22 +7,24 @@ use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverBy;
 use Symfony\Component\Dotenv\Dotenv;
 
-class WebScraper {
+class WebScraper
+{
     private RemoteWebDriver $driver;
     private DB $db;
 
     public array $possibleCategories =
         ["js", "html", "php", "java", "python", "ruby", "net", "c", "testing", "devops", "go", "scala", "mobile",
-            "security", "other",'devops', 'ux', 'pm', 'game','analytics','security','data','support', 'erp',
+            "security", "other", 'devops', 'ux', 'pm', 'game', 'analytics', 'security', 'data', 'support', 'erp',
             'architecture', 'other'];
 
-    public function __construct() {
+    public function __construct()
+    {
 
         self::checkCategory($_SERVER['argv']);
         $dotenv = new Dotenv();
         $dotenv->load(__DIR__ . '/.env');
 
-        require_once ('database.php');
+        require_once('database.php');
 
         $chromeBinaryPath = $_ENV['CHROME_BINARY_PATH'];
         $host = $_ENV['WEBDRIVER_HOST'];
@@ -102,7 +104,7 @@ class WebScraper {
             $skillsCountArray[$skill]['average_level'] = $averageLevel;
         }
 
-        $this->db->insert($category,json_encode($skillsCountArray), count($uniqueHrefsArray));
+        $this->db->insert($category, json_encode($skillsCountArray), count($uniqueHrefsArray));
 
     }
 
@@ -126,13 +128,19 @@ class WebScraper {
             }
         }
 
-        return $count > 0 ? round($total / $count,2) : 0;
+        return $count > 0 ? round($total / $count, 2) : 0;
     }
+
     private function checkCategory($args): void
     {
-        if (!in_array($args[1], $this->possibleCategories)){
+        if (!in_array($args[1], $this->possibleCategories)) {
             exit ("Wrong argument, category not found.");
         }
+    }
+
+    public function __destruct()
+    {
+        $this->driver->quit();
     }
 }
 
@@ -141,3 +149,4 @@ $scraper = new WebScraper();
 for ($i = 1; $i <= count($_SERVER['argv']) - 1; $i++) {
     $scraper->scrapeOffers($_SERVER['argv'][$i]);
 }
+
