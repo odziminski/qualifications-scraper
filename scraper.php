@@ -92,7 +92,9 @@ class WebScraper
                         $skillsCountArray[$skill] = ['count' => 0, 'levels' => []];
                     }
                     $skillsCountArray[$skill]['count']++;
+                    $skillsCountArray[$skill]['percentage'] = $this->getPercentage($skillsCountArray[$skill]['count'], count($uniqueHrefsArray));
                     $skillsCountArray[$skill]['levels'][] = $level;
+
                 }
 
                 $i++;
@@ -106,6 +108,11 @@ class WebScraper
 
         $this->db->insert($category, json_encode($skillsCountArray), count($uniqueHrefsArray));
 
+    }
+
+    public function getPercentage($count, $total): float
+    {
+        return round(($count / $total) * 100, 2);
     }
 
     function calculateAverageLevel($levels): float|int
@@ -137,6 +144,9 @@ class WebScraper
             exit ("Wrong argument, category not found.");
         }
     }
+
+
+
 
     public function __destruct()
     {
