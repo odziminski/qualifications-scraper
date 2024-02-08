@@ -145,9 +145,6 @@ class WebScraper
         }
     }
 
-
-
-
     public function __destruct()
     {
         $this->driver->quit();
