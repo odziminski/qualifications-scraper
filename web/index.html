@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/mvp.css">
-    <title>Job Offers</title>
+    <title>justjoin.it tech scraper</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -39,7 +39,7 @@
     <h3>find the most demanded tech in every IT niche.</h3>
     <p>technologies to choose:</p>
     <ul>
-        <li><a href="#" class="js">javascript</a></li>
+        <li><a href="index.html" class="js">javascript</a></li>
         <li><a href="#" class="html">html</a></li>
         <li><a href="#" class="php">php</a></li>
         <li><a href="#" class="java">java</a></li>
@@ -55,18 +55,26 @@
         <li><a href="#" class="security">security</a></li>
         <li><a href="#" class="other">other</a></li>
     </ul>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("ul a").click(function(e){
+                e.preventDefault();
+                var tech = $(this).attr('class');
+                $.ajax({
+                    url: '/qualifications/web/category.php',
+                    type: 'GET',
+                    data: { technology: tech },
+                    success: function(data) {
+                        console.log(data);
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+    </script>
 </header>
-<main>
-    <div class="job-offers">
-    </div>
-    <div class="pagination">
-    </div>
-</main>
-<footer>
-    <nav>
-    </nav>
-    <div class="social-media">
-    </div>
-</footer>
 </body>
 </html>
