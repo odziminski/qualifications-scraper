@@ -29,7 +29,7 @@ class DB
     public static function getByCategory($category): array
     {
         $pdo = self::connect();
-        $sql = "SELECT * FROM qualifications WHERE category = ?";
+        $sql = "SELECT * FROM qualifications WHERE category = ? ORDER BY id DESC LIMIT 1";
         $query = $pdo->prepare($sql);
         $query->execute([$category]);
         return $query->fetchAll(PDO::FETCH_ASSOC);
