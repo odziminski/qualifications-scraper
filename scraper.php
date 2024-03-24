@@ -71,9 +71,8 @@ class WebScraper
             usleep(5500);
             $i = 1;
             while (true) {
-                $xpathSkill = "/html/body/div[1]/div[2]/div[2]/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/h6";
-                $xpathLevel = "/html/body/div[1]/div[2]/div[2]/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/span";
-
+                $xpathSkill = "/html/body/div[1]/div[3]/div/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/h6";
+                $xpathLevel = "/html/body/div[1]/div[3]/div/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/span";
                 $elementsSkill = $this->driver->findElements(WebDriverBy::xpath($xpathSkill));
                 $elementsLevel = $this->driver->findElements(WebDriverBy::xpath($xpathLevel));
 
