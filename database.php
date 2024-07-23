@@ -29,9 +29,42 @@ class DB
     public static function getByCategory($category): array
     {
         $pdo = self::connect();
-        $sql = "SELECT * FROM qualifications WHERE category = ? ORDER BY id DESC LIMIT 1";
+        $sql = "SELECT id,category, skills, offers_count, added_at
+        FROM qualifications
+        WHERE category = ?
+        ORDER BY added_at DESC";
         $query = $pdo->prepare($sql);
         $query->execute([$category]);
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        $data = $query->fetch(PDO::FETCH_ASSOC);
+
+        if ($data) {
+            $data = self::sortDataArray($data);
+        }
+
+        return $data;
+    }
+
+    public static function sortDataArray($data)
+    {
+        $skills = json_decode($data['skills'], true);
+        if (is_array($skills)){
+            $sortedSkills = [];
+            foreach ($skills as $key => $value) {
+                $sortedSkills[] = ['technology' => $key, 'data' => $value];
+            }
+
+            usort($sortedSkills, function ($a, $b) {
+                return $b['data']['count'] <=> $a['data']['count'];
+            });
+
+            $sortedSkillsAssoc = [];
+            foreach ($sortedSkills as $item) {
+                $sortedSkillsAssoc[$item['technology']] = $item['data'];
+            }
+
+            $data['skills'] = json_encode($sortedSkillsAssoc);
+        }
+
+        return $data;
     }
 }
