@@ -26,7 +26,7 @@ class DB
         }
     }
 
-    public static function getByCategory($category): array | bool
+    public static function getTechByCategory($category): array | bool
     {
         $pdo = self::connect();
         $sql = "SELECT id,category, skills, offers_count, added_at
