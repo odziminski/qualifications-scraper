@@ -71,8 +71,8 @@ class WebScraper
             usleep(5500);
             $i = 1;
             while (true) {
-                $xpathSkill = "/html/body/div[1]/div[3]/div/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/h6";
-                $xpathLevel = "/html/body/div[1]/div[3]/div/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/span";
+                $xpathSkill = "/html/body/div[1]/div[2]/div[1]/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/h4";
+                $xpathLevel = "/html/body/div[1]/div[2]/div[1]/div/div[2]/div[2]/div[3]/div/ul/div[$i]/div/span";
                 $elementsSkill = $this->driver->findElements(WebDriverBy::xpath($xpathSkill));
                 $elementsLevel = $this->driver->findElements(WebDriverBy::xpath($xpathLevel));
 
@@ -85,7 +85,6 @@ class WebScraper
                 foreach ($elementsLevel as $elementLevel) {
                     $level = $elementLevel->getText();
                 }
-
                 if (isset($skill) && isset($level)) {
                     if (!array_key_exists($skill, $skillsCountArray)) {
                         $skillsCountArray[$skill] = ['count' => 0, 'levels' => []];
